@@ -4,13 +4,15 @@
 import * as React from 'react'
 
 function Counter({initialCount = 0, step = 2}) {
-  const countReducer = (state, action) =>
-    action.type === 'INCREMENT'
-      ? {
-          ...state,
-          count: state.count + step,
-        }
-      : state
+  const countReducer = (state, action) => {
+    switch (action.type) {
+      case 'INCREMENT':
+        return {count: state.count + action.step}
+      default: {
+        throw new Error(`Unsupported action type: ${action.type}`)
+      }
+    }
+  }
 
   const [state, dispatch] = React.useReducer(countReducer, {
     count: initialCount,
