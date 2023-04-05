@@ -5,7 +5,7 @@ import * as React from 'react'
 
 function Counter({initialCount = 0, step = 5}) {
   // 🐨 replace React.useState with React.useReducer
-	const countReducer = (state, step) => state + step
+	const countReducer = (count, step) => count + step
   // const [count, setCount] = React.useState(initialCount)
   const [count, changeCount] = React.useReducer(countReducer, initialCount)
 
