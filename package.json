@@ -13,26 +13,6 @@
     "node": "14 || 16 || 18",
     "npm": ">=8.16.0"
   },
-  "dependencies": {
-    "@kentcdodds/react-workshop-app": "^6.0.1",
-    "@testing-library/react": "^13.3.0",
-    "@testing-library/user-event": "^14.2.1",
-    "chalk": "^4.1.2",
-    "codegen.macro": "^4.1.0",
-    "mq-polyfill": "^1.1.8",
-    "react": "^18.2.0",
-    "react-dom": "^18.2.0",
-    "react-error-boundary": "^3.1.4"
-  },
-  "devDependencies": {
-    "@craco/craco": "^6.4.3",
-    "@types/react": "^18.0.14",
-    "@types/react-dom": "^18.0.5",
-    "husky": "^4.3.8",
-    "npm-run-all": "^4.1.5",
-    "prettier": "^2.7.1",
-    "react-scripts": "^5.0.1"
-  },
   "scripts": {
     "start": "craco start",
     "build": "craco build",
@@ -44,11 +24,25 @@
     "format": "prettier --write \"./src\"",
     "validate": "npm-run-all --parallel build test:coverage lint"
   },
-  "husky": {
-    "hooks": {
-      "pre-commit": "node ./scripts/pre-commit",
-      "pre-push": "node ./scripts/pre-push"
-    }
+  "dependencies": {
+    "@kentcdodds/react-workshop-app": "^6.0.2",
+    "@testing-library/react": "^14.0.0",
+    "@testing-library/user-event": "^14.4.3",
+    "chalk": "^5.2.0",
+    "codegen.macro": "^4.1.0",
+    "mq-polyfill": "^1.1.8",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "react-error-boundary": "^4.0.3"
+  },
+  "devDependencies": {
+    "@craco/craco": "^7.1.0",
+    "@types/react": "^18.0.32",
+    "@types/react-dom": "^18.0.11",
+    "husky": "^8.0.3",
+    "npm-run-all": "^4.1.5",
+    "prettier": "^2.8.7",
+    "react-scripts": "^5.0.1"
   },
   "jest": {
     "collectCoverageFrom": [
