@@ -31,28 +31,21 @@ function pokemonInfoReducer(state, action) {
   }
 }
 
-function PokemonInfo({pokemonName}) {
-  // 🐨 move all the code between the lines into a new useAsync function.
-  // 💰 look below to see how the useAsync hook is supposed to be called
-  // 💰 If you want some help, here's the function signature (or delete this
-  // comment really quick if you don't want the spoiler)!
-  // function useAsync(asyncCallback, initialState, dependencies) {/* code in here */}
-
-  // -------------------------- start --------------------------
-
+function useAsync(asyncCallback, initialState, deps) {
+  const pokemonName = deps && deps.length > 0 && deps[0]
   const [state, dispatch] = React.useReducer(pokemonInfoReducer, {
     status: pokemonName ? 'pending' : 'idle',
     // 🐨 this will need to be "data" instead of "pokemon"
-    pokemon: null,
+    data: null,
     error: null,
   })
 
   React.useEffect(() => {
     // 💰 this first early-exit bit is a little tricky, so let me give you a hint:
-    // const promise = asyncCallback()
-    // if (!promise) {
-    //   return
-    // }
+    const promise = asyncCallback()
+    if (!promise) {
+      return
+    }
     // then you can dispatch and handle the promise etc...
     if (!pokemonName) {
       return
@@ -69,16 +62,27 @@ function PokemonInfo({pokemonName}) {
     // 🐨 you'll accept dependencies as an array and pass that here.
     // 🐨 because of limitations with ESLint, you'll need to ignore
     // the react-hooks/exhaustive-deps rule. We'll fix this in an extra credit.
-  }, [pokemonName])
-  // --------------------------- end ---------------------------
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, deps)
 
+  return state
+}
+
+function PokemonInfo({pokemonName}) {
   // 🐨 here's how you'll use the new useAsync hook you're writing:
-  // const state = useAsync(() => {
-  //   if (!pokemonName) {
-  //     return
-  //   }
-  //   return fetchPokemon(pokemonName)
-  // }, {/* initial state */}, [pokemonName])
+  const state = useAsync(
+    () => {
+      if (!pokemonName) {
+        return
+      }
+      return fetchPokemon(pokemonName)
+    },
+    {
+      /* initial state */
+    },
+    [pokemonName],
+  )
+
   // 🐨 this will change from "pokemon" to "data"
   const {pokemon, status, error} = state
 
