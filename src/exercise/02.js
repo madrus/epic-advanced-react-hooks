@@ -35,7 +35,7 @@ function asyncReducer(state, action) {
  * @param {*} dependencies when we want our asyncCallback be re-called
  * @returns a Promise of data
  */
-function useAsync(asyncCallback, initialState, dependencies) {
+function useAsync(asyncCallback, initialState) {
   const [state, dispatch] = React.useReducer(asyncReducer, {
     status: 'idle',
     data: null,
@@ -43,14 +43,18 @@ function useAsync(asyncCallback, initialState, dependencies) {
     ...initialState,
   })
 
+	/**
+	 * useEffect is memoized based on asyncCallback
+	 * which is memoized based on pokemonName
+	 */
   React.useEffect(() => {
     // we call asyncCallback immediately to let hooks user a chance to return early
     const promise = asyncCallback()
     if (!promise) {
-			// this check will help us return early if no promise
-			return
+      // this check will help us return early if no promise
+      return
     }
-		// then you can dispatch and handle the promise etc...
+    // then you can dispatch and handle the promise etc...
     dispatch({type: 'pending'})
     // we have a promise, let's handle it
     promise.then(
@@ -65,21 +69,28 @@ function useAsync(asyncCallback, initialState, dependencies) {
     // 🐨 because of limitations with ESLint, you'll need to ignore
     // the react-hooks/exhaustive-deps rule. We'll fix this in an extra credit.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, dependencies)
+  }, [asyncCallback])
 
   return state
 }
 
+/**
+ * asyncCallback is memoized based on pokemonName
+ * @param {*} param0
+ * @returns
+ */
 function PokemonInfo({pokemonName}) {
+  const asyncCallback = React.useCallback(() => {
+    if (!pokemonName) {
+      // this will trigger the return early from useAsync
+      return
+    }
+    return fetchPokemon(pokemonName)
+  }, [pokemonName])
+
   // 🐨 here's how you'll use the new useAsync hook you're writing:
   const state = useAsync(
-    () => {
-      if (!pokemonName) {
-				// this will trigger the return early from useAsync
-        return
-      }
-      return fetchPokemon(pokemonName)
-    },
+    asyncCallback,
     {status: pokemonName ? 'pending' : 'idle'},
     [pokemonName],
   )
