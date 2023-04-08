@@ -30,12 +30,12 @@ function asyncReducer(state, action) {
 
 /**
  *
- * @param {*} asyncCallback our async thing
+ * @param {*} asyncFetchCallback our async thing
  * @param {*} initialState
- * @param {*} dependencies when we want our asyncCallback be re-called
+ * @param {*} dependencies when we want our asyncFetchCallback be re-called
  * @returns a Promise of data
  */
-function useAsync(asyncCallback, initialState) {
+function useAsync(asyncFetchCallback, initialState) {
   const [state, dispatch] = React.useReducer(asyncReducer, {
     status: 'idle',
     data: null,
@@ -43,13 +43,13 @@ function useAsync(asyncCallback, initialState) {
     ...initialState,
   })
 
-	/**
-	 * useEffect is memoized based on asyncCallback
-	 * which is memoized based on pokemonName
-	 */
+  /**
+   * useEffect is memoized based on asyncFetchCallback
+   * which is memoized based on pokemonName
+   */
   React.useEffect(() => {
-    // we call asyncCallback immediately to let hooks user a chance to return early
-    const promise = asyncCallback()
+    // we call asyncFetchCallback immediately to let the hooks user a chance to return early
+    const promise = asyncFetchCallback()
     if (!promise) {
       // this check will help us return early if no promise
       return
@@ -65,22 +65,19 @@ function useAsync(asyncCallback, initialState) {
         dispatch({type: 'rejected', error})
       },
     )
-    // 🐨 you'll accept dependencies as an array and pass that here.
-    // 🐨 because of limitations with ESLint, you'll need to ignore
-    // the react-hooks/exhaustive-deps rule. We'll fix this in an extra credit.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [asyncCallback])
+  }, [asyncFetchCallback])
 
   return state
 }
 
 /**
- * asyncCallback is memoized based on pokemonName
+ * asyncFetchCallback is memoized based on pokemonName
  * @param {*} param0
  * @returns
  */
 function PokemonInfo({pokemonName}) {
-  const asyncCallback = React.useCallback(() => {
+  const asyncFetchCallback = React.useCallback(() => {
     if (!pokemonName) {
       // this will trigger the return early from useAsync
       return
@@ -89,13 +86,10 @@ function PokemonInfo({pokemonName}) {
   }, [pokemonName])
 
   // 🐨 here's how you'll use the new useAsync hook you're writing:
-  const state = useAsync(
-    asyncCallback,
-    {status: pokemonName ? 'pending' : 'idle'},
-    [pokemonName],
-  )
+  const state = useAsync(asyncFetchCallback, {
+    status: pokemonName ? 'pending' : 'idle',
+  })
 
-  // 🐨 this will change from "pokemon" to "data"
   const {data: pokemon, status, error} = state
 
   switch (status) {
