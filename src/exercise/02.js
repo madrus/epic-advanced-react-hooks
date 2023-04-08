@@ -35,7 +35,7 @@ function asyncReducer(state, action) {
  * @param {*} dependencies when we want our asyncFetchCallback be re-called
  * @returns a Promise of data
  */
-function useAsync(asyncFetchCallback, initialState) {
+function useAsync(initialState) {
   const [state, dispatch] = React.useReducer(asyncReducer, {
     status: 'idle',
     data: null,
@@ -43,21 +43,14 @@ function useAsync(asyncFetchCallback, initialState) {
     ...initialState,
   })
 
-  /**
-   * useEffect is memoized based on asyncFetchCallback
-   * which is memoized based on pokemonName
-   */
-  React.useEffect(() => {
-    // we call asyncFetchCallback immediately to let the hooks user a chance to return early
-    const promise = asyncFetchCallback()
+	const run = React.useCallback(promise => {
     if (!promise) {
-      // this check will help us return early if no promise
       return
     }
-    // then you can dispatch and handle the promise etc...
-    dispatch({type: 'pending'})
-    // we have a promise, let's handle it
-    promise.then(
+
+		dispatch({type: 'pending'})
+
+		promise.then(
       data => {
         dispatch({type: 'resolved', data})
       },
@@ -65,10 +58,9 @@ function useAsync(asyncFetchCallback, initialState) {
         dispatch({type: 'rejected', error})
       },
     )
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [asyncFetchCallback])
+	}, [])
 
-  return state
+  return {...state, run}
 }
 
 /**
@@ -77,20 +69,28 @@ function useAsync(asyncFetchCallback, initialState) {
  * @returns
  */
 function PokemonInfo({pokemonName}) {
-  const asyncFetchCallback = React.useCallback(() => {
+  // 💰 destructuring this here now because it just felt weird to call this
+  // "state" still when it's also returning a function called "run" 🙃
+  const {
+    data: pokemon,
+    status,
+    error,
+		run
+  } = useAsync({
+    status: pokemonName ? 'pending' : 'idle',
+  })
+
+  React.useEffect(() => {
     if (!pokemonName) {
       // this will trigger the return early from useAsync
       return
     }
-    return fetchPokemon(pokemonName)
-  }, [pokemonName])
-
-  // 🐨 here's how you'll use the new useAsync hook you're writing:
-  const state = useAsync(asyncFetchCallback, {
-    status: pokemonName ? 'pending' : 'idle',
-  })
-
-  const {data: pokemon, status, error} = state
+    // 💰 note the absence of `await` here. We're literally passing the promise
+    // to `run` so `useAsync` can attach it's own `.then` handler on it to keep
+    // track of the state of the promise.
+    const pokemonPromise = fetchPokemon(pokemonName)
+    run(pokemonPromise)
+  }, [pokemonName, run])
 
   switch (status) {
     case 'idle':
