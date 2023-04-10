@@ -35,7 +35,8 @@ function asyncReducer(state, action) {
  * @param {*} dependencies when we want our asyncFetchCallback be re-called
  * @returns a Promise of data
  */
-function useAsync(initialState, ref) {
+function useAsync(initialState) {
+  const mountedRef = React.useRef(false)
   const [state, dispatch] = React.useReducer(asyncReducer, {
     status: 'idle',
     data: null,
@@ -45,39 +46,41 @@ function useAsync(initialState, ref) {
 
   const run = React.useCallback(
     promise => {
-      if (!promise) {
-        return
-      }
+      if (!promise) return
 
       console.log('game started!')
       dispatch({type: 'pending'})
 
       promise.then(
         data => {
-          if (!ref.current) {
+          if (!mountedRef.current) {
             console.log('no more ref')
             return
           }
           dispatch({type: 'resolved', data})
         },
         error => {
-          if (error.name === 'AbortError') {
-            console.log('fetch aborted')
-            return
-          } else {
-            console.log('fetch rejected')
+          // if (error.name === 'AbortError') {
+					// 	if (mountedRef.current) {
+					// 		console.log('fetch aborted')
+					// 		dispatch({type: 'rejected', error})
+					// 	}
+          // } else {
+					console.log('fetch rejected')
             dispatch({type: 'rejected', error})
-          }
+          // }
         },
       )
     },
-    [ref],
+    [mountedRef],
   )
 
-  React.useEffect(() => {
-    console.log('innerHTML', ref.current?.innerHTML)
-    return () => (ref.current = null)
-  }, [ref])
+  React.useLayoutEffect(() => {
+    mountedRef.current = true
+    return () => {
+      mountedRef.current = false
+    }
+  }, [])
 
   return {...state, run}
 }
@@ -88,19 +91,14 @@ function useAsync(initialState, ref) {
  * @returns
  */
 function PokemonInfo({pokemonName}) {
-  const infoRef = React.useRef()
-
   const {
     data: pokemon,
     status,
     error,
     run,
-  } = useAsync(
-    {
-      status: pokemonName ? 'pending' : 'idle',
-    },
-    infoRef,
-  )
+  } = useAsync({
+    status: pokemonName ? 'pending' : 'idle',
+  })
 
   React.useEffect(() => {
     if (!pokemonName) {
@@ -108,36 +106,18 @@ function PokemonInfo({pokemonName}) {
     }
 
     const pokemonPromise = fetchPokemon(pokemonName)
-    const runTimeout = setTimeout(() => run(pokemonPromise), 3000)
-    return () => clearTimeout(runTimeout)
+    run(pokemonPromise)
   }, [pokemonName, run])
-
-  React.useEffect(() => {
-    //! This useEffect is necessary to initialized infoRef
-    // console.log('infoRef.current: <<', infoRef.current, '>>')
-  }, [])
 
   switch (status) {
     case 'idle':
-      return (
-        <div ref={infoRef}>
-          <span>Submit a pokemon</span>
-        </div>
-      )
+      return <span>Submit a pokemon</span>
     case 'pending':
-      return (
-        <div ref={infoRef}>
-          <PokemonInfoFallback name={pokemonName} />
-        </div>
-      )
+      return <PokemonInfoFallback name={pokemonName} />
     case 'rejected':
       throw error
     case 'resolved':
-      return (
-        <div ref={infoRef}>
-          <PokemonDataView pokemon={pokemon} />
-        </div>
-      )
+      return <PokemonDataView pokemon={pokemon} />
     default:
       throw new Error('This should be impossible')
   }

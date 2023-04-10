@@ -44,13 +44,16 @@ function fetchPokemon(name, delay = 1500) {
       }),
     })
     .then(async response => {
-			// this "if" can help us test aborting
-			// if (Math.random() > 0.5) {
-			// 	console.log('let us abort the promise')
-			// 	controller.abort()
-			// }
-      const {data} = await response.json()
-      if (response.ok) {
+      // this "if" can help us test aborting
+      if (Math.random() > 0.5) {
+        console.log('let us abort the promise')
+        controller.abort()
+      }
+			const {data} = await response.json()
+			if (controller.signalAborted) {
+        console.log('then aborted')
+        return Promise.reject(new Error({name: 'AbortError'}))
+      } else if (response.ok) {
         const pokemon = data?.pokemon
         if (pokemon) {
           pokemon.fetchedAt = formatDate(new Date())
@@ -67,8 +70,10 @@ function fetchPokemon(name, delay = 1500) {
       }
     })
     .catch(error => {
-      if (controller.signalAborted || error.name === 'AbortError') {
-        console.log('aborted indeed')
+      if (error.name === 'AbortError') {
+        console.log('catch aborted')
+        return Promise.reject(new Error('Fetch aborted by the user'))
+      } else {
         throw error
       }
     })
