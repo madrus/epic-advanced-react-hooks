@@ -28,6 +28,27 @@ function asyncReducer(state, action) {
   }
 }
 
+function useSafeDispatch(dispatch) {
+  const mountedRef = React.useRef(false)
+
+  // to make this even more generic you should use the useLayoutEffect hook to
+  // make sure that you are correctly setting the mountedRef.current immediately
+  // after React updates the DOM. Even though this effect does not interact
+  // with the dom another side effect inside a useLayoutEffect which does
+  // interact with the dom may depend on the value being set
+  React.useLayoutEffect(() => {
+    mountedRef.current = true
+    return () => {
+      mountedRef.current = false
+    }
+  }, [])
+
+  return React.useCallback(
+    (...args) => (mountedRef.current ? dispatch(...args) : void 0),
+    [dispatch],
+  )
+}
+
 /**
  *
  * @param {*} asyncFetchCallback our async thing
@@ -36,51 +57,29 @@ function asyncReducer(state, action) {
  * @returns a Promise of data
  */
 function useAsync(initialState) {
-  const mountedRef = React.useRef(false)
-  const [state, dispatch] = React.useReducer(asyncReducer, {
+  const [state, unsafeDispatch] = React.useReducer(asyncReducer, {
     status: 'idle',
     data: null,
     error: null,
     ...initialState,
   })
 
+  const dispatch = useSafeDispatch(unsafeDispatch)
+
   const run = React.useCallback(
     promise => {
-      if (!promise) return
-
-      console.log('game started!')
       dispatch({type: 'pending'})
-
       promise.then(
         data => {
-          if (!mountedRef.current) {
-            console.log('no more ref')
-            return
-          }
           dispatch({type: 'resolved', data})
         },
         error => {
-          // if (error.name === 'AbortError') {
-					// 	if (mountedRef.current) {
-					// 		console.log('fetch aborted')
-					// 		dispatch({type: 'rejected', error})
-					// 	}
-          // } else {
-					console.log('fetch rejected')
-            dispatch({type: 'rejected', error})
-          // }
+          dispatch({type: 'rejected', error})
         },
       )
     },
-    [mountedRef],
+    [dispatch],
   )
-
-  React.useLayoutEffect(() => {
-    mountedRef.current = true
-    return () => {
-      mountedRef.current = false
-    }
-  }, [])
 
   return {...state, run}
 }
@@ -105,8 +104,7 @@ function PokemonInfo({pokemonName}) {
       return
     }
 
-    const pokemonPromise = fetchPokemon(pokemonName)
-    run(pokemonPromise)
+    run(fetchPokemon(pokemonName))
   }, [pokemonName, run])
 
   switch (status) {

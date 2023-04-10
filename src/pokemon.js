@@ -45,7 +45,7 @@ function fetchPokemon(name, delay = 1500) {
     })
     .then(async response => {
       // this "if" can help us test aborting
-      if (Math.random() > 0.5) {
+      if (Math.random() > 0.75) {
         console.log('let us abort the promise')
         controller.abort()
       }
