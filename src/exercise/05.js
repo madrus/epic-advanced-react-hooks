@@ -4,7 +4,7 @@
 import * as React from 'react'
 
 // 🐨 wrap this in a React.forwardRef and accept `ref` as the second argument
-const MessagesDisplay = React.forwardRef(({messages}, ref) => {
+function MessagesDisplay({messages}, ref) {
   const containerRef = React.useRef()
   React.useLayoutEffect(() => {
     scrollToBottom()
@@ -33,7 +33,10 @@ const MessagesDisplay = React.forwardRef(({messages}, ref) => {
       ))}
     </div>
   )
-})
+}
+
+// eslint-disable-next-line no-func-assign
+MessagesDisplay = React.forwardRef(MessagesDisplay)
 
 function App() {
   const messageDisplayRef = React.useRef()
