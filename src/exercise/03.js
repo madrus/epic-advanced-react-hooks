@@ -2,24 +2,7 @@
 // http://localhost:3000/isolated/exercise/03.js
 
 import * as React from 'react'
-
-const CountContext = React.createContext()
-
-function CountProvider(props) {
-  const [count, setCount] = React.useState(0)
-  const value = [count, setCount]
-  return <CountContext.Provider value={value} {...props} />
-}
-
-function useCount() {
-  const context = React.useContext(CountContext)
-  if (!context) {
-    throw new Error(
-      'useCount may only be used from within a (child of a) CountProvider',
-    )
-  }
-  return [...context]
-}
+import { useCount, CountProvider } from './useCount'
 
 function CountDisplay() {
   const [count] = useCount()
