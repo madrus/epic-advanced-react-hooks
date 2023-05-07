@@ -33,15 +33,15 @@
     "mq-polyfill": "^1.1.8",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
-    "react-error-boundary": "^4.0.3"
+    "react-error-boundary": "^4.0.4"
   },
   "devDependencies": {
     "@craco/craco": "^7.1.0",
-    "@types/react": "^18.0.32",
-    "@types/react-dom": "^18.0.11",
+    "@types/react": "^18.2.6",
+    "@types/react-dom": "^18.2.4",
     "husky": "^8.0.3",
     "npm-run-all": "^4.1.5",
-    "prettier": "^2.8.7",
+    "prettier": "^2.8.8",
     "react-scripts": "^5.0.1"
   },
   "jest": {
